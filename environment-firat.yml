@@ -1,0 +1,16 @@
+name: "sdsc-hackathon"
+channels:
+  - conda-forge
+dependencies:
+  - python==3.10
+  - pyyaml
+  - pandas
+  - matplotlib
+  - pip
+  - git
+  - pip: 
+    - ipykernel
+    - nixtlats
+    - openai
+    - requests
+    - pillow
