@@ -2,6 +2,7 @@ import os
 from PIL import Image
 import gradio as gr
 import prompt_generator_for_gpt
+import query_amazon_firat
 
 
 def run_the_process(gender_str, ethnicity_str, age_str, destination_str, date_start_str, date_end_str):
@@ -27,6 +28,13 @@ def run_the_process(gender_str, ethnicity_str, age_str, destination_str, date_st
     logs_value = f'ChatGPT prompt: {chat_gpt_prompt}'
     ## call ChatGPT
     ## call DALL-E
+    ## call amazon API
+    clothing_str_chatgpt = 'type of clothing,2-3 word description\nJacket,Winter Parka\nPants,Thermal Trousers\nBoots,Insulated Snow Boots\nGloves,Extreme Cold-Weather Gloves\nHat,Fleece-lined Beanie\nScarf,Thick Wool Scarf\nThermal Socks,Merino Wool Socks\nBase Layer,Long-sleeve Thermal Top\nOuter Layer,Waterproof Shell'
+    amazon_search_queries = clothing_str_chatgpt.split('\n')[1:]
+    gallery_list = []
+    # for rows in range(3): ## current API runs out too fast.
+    #     dict_amazon = query_amazon_firat.search_product(amazon_search_queries[rows], max_items=3)
+    #     gallery_list += dict_amazon['thumbnails']
     # image = None
     hardcoded_image = 'images/generated_image.png'
     if os.path.isfile(hardcoded_image):
@@ -34,7 +42,7 @@ def run_the_process(gender_str, ethnicity_str, age_str, destination_str, date_st
     else:
         image = None
     output_im = image ## load image from images/ folder
-    outputs = [output_im, date_start_info, date_end_info, logs_value]
+    outputs = [output_im, date_start_info, date_end_info, logs_value, gallery_list]
     return outputs
 
 def parse_date_str(date_str):
@@ -80,16 +88,19 @@ with gr.Blocks() as demo:
         with gr.Column(scale=1):
             date_end_str_box = gr.Textbox(info="Travel end [DD.MM.YYYY]", value=d_defaults['travel_end'], interactive=True)
     with gr.Row():
-        with gr.Column(scale=0.8):
+        with gr.Column(scale=8):
             logs_box = gr.Textbox(info="Logs", interactive=False)
-        with gr.Column(scale=0.2, ):
+        with gr.Column(scale=2):
             button_submit = gr.Button(value="Find appropriate clothing!")
     with gr.Row():
-        output_im = gr.Image(type="numpy", image_mode="L", label="Imagine!", interactive=False)
+        with gr.Column(scale=4):
+            output_im = gr.Image(type="numpy", image_mode="L", label="Imagine!", interactive=False)
+        with gr.Column(scale=6):
+            gallery_suggested_clothing = gr.Gallery(label="Our suggestions", rows=3, columns=3, allow_preview=True, show_download_button=False,)  
         
     l_inputs = [gender_str_box, ethnicity_str_box, age_str_box, destination_str_box, date_start_str_box, date_end_str_box]
     
-    button_submit.click(run_the_process, inputs=l_inputs, outputs=[output_im, date_start_str_box, date_end_str_box, logs_box])
+    button_submit.click(run_the_process, inputs=l_inputs, outputs=[output_im, date_start_str_box, date_end_str_box, logs_box, gallery_suggested_clothing])
 
 # data_start_parsed = parse_date_str(date_start_str)
     # if data_start_parsed == -1:
