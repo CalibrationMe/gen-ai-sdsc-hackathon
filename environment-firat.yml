@@ -16,5 +16,9 @@ dependencies:
     - pillow
     - gradio
     - http
+    - retry-requests
+    - requests-cache
+    - openmeteo-requests
+    - datetime
 
 
