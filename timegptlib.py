@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 # The function returns two sets of data, the original data in the correct format and the prediction
 
 
-def forcast_multi(key='hack.env', file='wea_data.csv', h=10, freq='D', level=[10, 20]):
+def forcast_multi(key='hack.env', file='wea_data.csv', h=10, freq='D', level=[10, 20], outputfile='filterForcast.csv'):
     load_dotenv(key)
     timegpt = TimeGPT()
     timegpt.validate_token()
@@ -17,7 +17,7 @@ def forcast_multi(key='hack.env', file='wea_data.csv', h=10, freq='D', level=[10
     multi_df = pd.melt(df, id_vars=['ds'], var_name='unique_id', value_name='y')
     fcst_multi_df = timegpt.forecast(df=multi_df, h=h, model='timegpt-1-long-horizon', freq=freq, level=level)
     fcst_multi_dfnew = fcst_multi_df.pivot_table(values='TimeGPT', index='ds', columns='unique_id')
-    fcst_multi_dfnew.to_csv('forcast.csv')
+    fcst_multi_dfnew.to_csv(outputfile)
     return fcst_multi_df, fcst_multi_dfnew
 
 
@@ -29,6 +29,23 @@ def get_features(file='forcast.csv'):
     rain = data['precipitatio']
     raindays = len(rain[rain > 5])
     return minTemp, maxTemp, sunhours, raindays
+
+
+def filter_forcast(file='wea_data.csv', startDate=None, endDate=None, outputfile='filterForcast.csv'):
+    df = pd.read_csv(file)
+    df['timestamp'] = pd.to_datetime(df['timestamp'], format='%Y-%m-%dT%H:%M')
+    df['year'] = df['timestamp'].dt.year
+    df['month'] = df['timestamp'].dt.month
+    df['day'] = df['timestamp'].dt.day
+
+    dfFiltered = df[(df['month'] >= int(startDate.split("-")[1])) &
+                    (df['month'] <= int(endDate.split("-")[1])) &
+                    (df['day'] >= int(startDate.split("-")[2])) &
+                    (df['day'] <= int(endDate.split("-")[2]))]
+    dfFiltered.to_csv(outputfile)
+
+    return dfFiltered
+
 
 
 
