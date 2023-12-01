@@ -37,11 +37,16 @@ def search_product(query: str, max_items: int=4, rapidAPI_key_index: int=0):
     data = res.read().decode("utf-8")
     query_result = json.loads(data)
 
-    if hasattr(query_result, 'message'):
-        if query_result['message'][len('You have exceeded')] == 'You have exceeded':
-            return search_product(query, max_items, rapidAPI_key=RAPID_API_KEYS[rapidAPI_key_index+1])
+    if 'status' in query_result:
+        if query_result['status'] == 'ERROR':
+            return search_product(query, max_items, rapidAPI_key_index=rapidAPI_key_index+1)
+
+    if 'message' in query_result:
+        if query_result['message'][:len('You have exceeded')] == 'You have exceeded':
+            return search_product(query, max_items, rapidAPI_key_index=rapidAPI_key_index+1)
     
     if 'data' not in query_result:
+        print('Something went wrong in shopping API!')
         return None
     thumbnails = [query_result['data'][i]['product_photos'][0] for i in range(np.min((max_items, len(query_result['data']))))]
     links = [query_result['data'][i]['offer']['offer_page_url'] for i in range(np.min((max_items, len(query_result['data']))))]
