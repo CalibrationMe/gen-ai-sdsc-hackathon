@@ -1,0 +1,12 @@
+name: "sdsc-hackathon"
+channels:
+  - conda-forge
+dependencies:
+  - python==3.10
+  - pip:
+    - datetime
+    - requests
+    - openmeteo-requests  # Assuming 'openmeteo_requests' is available on PyPI
+    - requests-cache
+    - pandas
+    - retry-requests  # Assuming 'retry_requests' is available on PyPI

@@ -14,6 +14,11 @@ dependencies:
     - openai
     - requests
     - pillow
+    - gradio
     - http
+    - retry-requests
+    - requests-cache
+    - openmeteo-requests
+    - datetime
 
 
