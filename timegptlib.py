@@ -21,14 +21,20 @@ def forcast_multi(key='hack.env', file='wea_data.csv', h=10, freq='D', level=[10
     return fcst_multi_df, fcst_multi_dfnew
 
 
-def get_features(file='forcast.csv'):
-    data = pd.read_csv(file)
-    minTemp = data['temperature'].min()
-    maxTemp = data['temperature'].max()
-    sunhours = (data['sunshine_duration'] / 3600.).mean()
-    rain = data['precipitatio']
-    raindays = len(rain[rain > 5])
-    return minTemp, maxTemp, sunhours, raindays
+def filter_forcast(file='wea_data.csv', startDate=None, endDate=None, outputfile='filterForcast.csv'):
+    df = pd.read_csv(file)
+    df['timestamp'] = pd.to_datetime(df['date'])
+    df['year'] = df['timestamp'].dt.year
+    df['month'] = df['timestamp'].dt.month
+    df['day'] = df['timestamp'].dt.day
+
+    dfFiltered = df[(df['month'] >= int(startDate.split("-")[1])) &
+                    (df['month'] <= int(endDate.split("-")[1])) &
+                    (df['day'] >= int(startDate.split("-")[2])) &
+                    (df['day'] <= int(endDate.split("-")[2]))]
+    dfFiltered.to_csv(outputfile)
+
+    return dfFiltered
 
 
 def filter_forcast(file='wea_data.csv', startDate=None, endDate=None, outputfile='filterForcast.csv'):
