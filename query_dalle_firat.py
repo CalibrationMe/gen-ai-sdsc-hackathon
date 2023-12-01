@@ -4,7 +4,7 @@ import os
 import requests
 from PIL import Image
 import json
-
+    
 
 def get_dalle_image(prompt_str, image_save_name=None):
 
