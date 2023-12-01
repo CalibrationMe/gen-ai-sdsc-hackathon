@@ -9,6 +9,7 @@ import query_shopping_firat
 import query_chatgpt_firat
 import query_dalle_firat
 import Generate_Wea_Pred_ALL
+import timegptlib
 import utils
 
 
@@ -75,6 +76,7 @@ def run_the_process(gender_str, ethnicity_str, age_str, destination_str, date_st
     # travel_start = "2023-12-03"
 # travel_end = "2024-01-07"
 # location_name='Zurich'
+    # weather_data = timegptlib.filter_forcast(file='wea_data.csv', startDate=data_start_parsed, endDate=data_end_parsed, outputfile='filterForcast.csv')
     weather_data = Generate_Wea_Pred_ALL.get_wea_data_df(data_start_parsed,data_end_parsed,destination_str)
     
     # else:
