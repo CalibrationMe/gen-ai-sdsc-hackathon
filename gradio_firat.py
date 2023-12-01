@@ -3,13 +3,13 @@ from PIL import Image
 import numpy as np
 import pickle
 import matplotlib.pyplot as plt
+import gradio as gr
 import prompt_generator_for_gpt
 import query_shopping_firat
 import query_chatgpt_firat
 import query_dalle_firat
 import Generate_Wea_Pred_ALL
 import utils
-import gradio as gr
 
 
 shopping_image_urls = []

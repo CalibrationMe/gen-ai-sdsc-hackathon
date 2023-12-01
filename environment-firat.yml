@@ -1,29 +1,22 @@
-name: "sdsc-hackathon2"
+name: "sdsc-hackathon"
 channels:
   - conda-forge
 dependencies:
-  - python==3.10
+  - python==3.10.*
   - pyyaml
   - pandas
   - matplotlib
   - pip
-  - gradio
   - git
   - pip: 
     - ipykernel
-    - openai
-    - request
+    - datetime
     - requests
     - pillow
-    - http
+    - gradio
     - retry-requests
     - requests-cache
     - openmeteo-requests
-    - datetime
-    - dotenv
+    - openai
     - python-dotenv
-    # - gradio==3.50.2
-    - nixtlats
-    - pydantic==1.10.13
-
-
+    
