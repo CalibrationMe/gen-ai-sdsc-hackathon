@@ -3,13 +3,13 @@ from PIL import Image
 import numpy as np
 import pickle
 import matplotlib.pyplot as plt
-import gradio as gr
 import prompt_generator_for_gpt
 import query_shopping_firat
 import query_chatgpt_firat
 import query_dalle_firat
-import get_weather_data
+import Generate_Wea_Pred_ALL
 import utils
+import gradio as gr
 
 
 shopping_image_urls = []
@@ -71,7 +71,11 @@ def run_the_process(gender_str, ethnicity_str, age_str, destination_str, date_st
         date_end_info = date_end_str
         
     # if is_online:
-    #     weather_params = get_weather_data.get_data(date_str='2023-11-20',days_before=30*5,location_name=destination_str)
+    # weather_params = get_weather_data.get_data(date_str='2023-11-20',days_before=30*5,location_name=destination_str)
+    # travel_start = "2023-12-03"
+# travel_end = "2024-01-07"
+# location_name='Zurich'
+    weather_data = Generate_Wea_Pred_ALL.get_wea_data_df(data_start_parsed,data_end_parsed,destination_str)
     # else:
     #     ## weather params
     #     minTemp = 10
