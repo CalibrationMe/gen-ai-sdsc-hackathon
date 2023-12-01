@@ -292,25 +292,38 @@ def get_timegpt_pred(travel_start,travel_end,location_name):
 
 def get_wea_data_df(travel_start,travel_end,location_name):
     
-    if test_date_range(travel_start,travel_end,weather_pred_range):
-        print('weather api')
-        # get data from weather api
-        daily_dataframe = get_weaapi_pred(travel_start,travel_end,location_name)
-    elif test_date_range(travel_start,travel_end,timegpt_pred_range):
-        print('timegpt')
-        # get data from timegpt
-        daily_dataframe = get_timegpt_pred(travel_start,travel_end,location_name)
-        print(daily_dataframe)
-        # call timegpt to do the prediction
-        #daily_dataframe = get_timegpt_pred(travel_start,travel_end,location_name)
-    else:
-        # use historical data
-        print('hist')
-        daily_dataframe = get_hist_wea_data(travel_start,travel_end,location_name)
-        print(daily_dataframe)
+    # if test_date_range(travel_start,travel_end,weather_pred_range):
+    #     print('weather api')
+    #     # get data from weather api
+    #     daily_dataframe = get_weaapi_pred(travel_start,travel_end,location_name)
+    # elif test_date_range(travel_start,travel_end,timegpt_pred_range):
+    #     print('timegpt')
+    #     # get data from timegpt
+    #     daily_dataframe = get_timegpt_pred(travel_start,travel_end,location_name)
+    #     print(daily_dataframe)
+    #     # call timegpt to do the prediction
+    #     #daily_dataframe = get_timegpt_pred(travel_start,travel_end,location_name)
+    # else:
+    #     # use historical data
+    #     print('hist')
+    #     daily_dataframe = get_hist_wea_data(travel_start,travel_end,location_name)
+    #     print(daily_dataframe)
 
+    daily_dataframe = get_hist_wea_data(travel_start,travel_end,location_name)
+    #print('final result')
+    minTemp = daily_dataframe['temperature'].min()
+    maxTemp = daily_dataframe['temperature'].max()
+    minPrec = daily_dataframe['precipitatio'].min()
+    maxPrec = daily_dataframe['precipitatio'].max()
+    # if sunshine_duration > 5*3600, then it is a sunny day, count the number of sunny days
+    sunnyDays = daily_dataframe[daily_dataframe['sunshine_duration'] > 5*3600].shape[0]
+    #print(minTemp,maxTemp,minPrec,maxPrec,sunnyDays)
+    t_value = daily_dataframe['temperature'].values
+    return minTemp,maxTemp,minPrec,maxPrec,sunnyDays,t_value
 
 # travel_start = "2023-12-03"
 # travel_end = "2024-01-07"
 # location_name='Zurich'
-# get_wea_data_df(travel_start,travel_end,location_name)
+# minTemp,maxTemp,minPrec,maxPrec,sunnyDays,t_value = get_wea_data_df(travel_start,travel_end,location_name)
+# print(minTemp,maxTemp,minPrec,maxPrec,sunnyDays,t_value)
+
