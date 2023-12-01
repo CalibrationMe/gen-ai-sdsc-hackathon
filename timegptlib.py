@@ -20,7 +20,15 @@ def forcast_multi(key='hack.env', file='wea_data.csv', h=10, freq='D', level=[10
     fcst_multi_dfnew.to_csv('forcast.csv')
     return fcst_multi_df, fcst_multi_dfnew
 
-#def get_features(data):
+
+def get_features(file='forcast.csv'):
+    data = pd.read_csv(file)
+    minTemp = data['temperature'].min()
+    maxTemp = data['temperature'].max()
+    sunhours = (data['sunshine_duration'] / 3600.).mean()
+    rain = data['precipitatio']
+    raindays = len(rain[rain > 5])
+    return minTemp, maxTemp, sunhours, raindays
 
 
 
