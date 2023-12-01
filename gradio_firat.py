@@ -76,6 +76,7 @@ def run_the_process(gender_str, ethnicity_str, age_str, destination_str, date_st
 # travel_end = "2024-01-07"
 # location_name='Zurich'
     weather_data = Generate_Wea_Pred_ALL.get_wea_data_df(data_start_parsed,data_end_parsed,destination_str)
+    
     # else:
     #     ## weather params
     #     minTemp = 10
@@ -174,10 +175,10 @@ def run_the_process(gender_str, ethnicity_str, age_str, destination_str, date_st
         'weather_text': weather_text,
         'temp_plot': temp_plot,
     }
-    # with open('hardcoded_params/middle-east-female-33-zermatt-012024.pkl', 'wb') as handle:
-    #     pickle.dump(hardcoded_params, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open('hardcoded_params/asian-female-23-stockholm-022024.pkl', 'wb') as handle:
+    with open('hardcoded_params/middle-east-female-14-zermatt-012024.pkl', 'wb') as handle:
         pickle.dump(hardcoded_params, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    # with open('hardcoded_params/asian-female-23-stockholm-022024.pkl', 'wb') as handle:
+    #     pickle.dump(hardcoded_params, handle, protocol=pickle.HIGHEST_PROTOCOL)
     # with open('hardcoded_params/african-american-female-63-toronto-022024.pkl', 'wb') as handle:
     #     pickle.dump(hardcoded_params, handle, protocol=pickle.HIGHEST_PROTOCOL)
     
@@ -212,20 +213,20 @@ def parse_date_str(date_str):
 d_defaults = {
     'gender': 'female',
     'ethnicity': 'middle eastern',
-    'age': '33',
+    'age': '14',
     'destination': 'Zermatt',
     'travel_start': '05.01.2024',
     'travel_end': '10.01.2024',
 }
 
-d_defaults = {
-    'gender': 'female',
-    'ethnicity': 'asian',
-    'age': '23',
-    'destination': 'Stockholm',
-    'travel_start': '05.02.2024',
-    'travel_end': '10.02.2024',
-}
+# d_defaults = {
+#     'gender': 'female',
+#     'ethnicity': 'asian',
+#     'age': '23',
+#     'destination': 'Stockholm',
+#     'travel_start': '05.02.2024',
+#     'travel_end': '10.02.2024',
+# }
 
 # d_defaults = {
 #     'gender': 'female',
