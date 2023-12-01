@@ -20,5 +20,7 @@ dependencies:
     - requests-cache
     - openmeteo-requests
     - datetime
+    - dotenv
+    - python-dotenv
 
 
