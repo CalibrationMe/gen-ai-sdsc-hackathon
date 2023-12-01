@@ -15,9 +15,13 @@ def forcast_multi(key='hack.env', file='wea_data.csv', h=10, freq='D', level=[10
     df = pd.read_csv(file)
     df = df.rename(columns={'date': 'ds'})
     multi_df = pd.melt(df, id_vars=['ds'], var_name='unique_id', value_name='y')
-    fcst_multi_df = TimeGPT.forecast(df=multi_df, h=h, model='timegpt-1-long-horizon', freq=freq, level=level)
-    fcst_multi_df.to_csv('forcast.csv')
-    return multi_df, fcst_multi_df
+    fcst_multi_df = timegpt.forecast(df=multi_df, h=h, model='timegpt-1-long-horizon', freq=freq, level=level)
+    fcst_multi_dfnew = fcst_multi_df.pivot_table(values='TimeGPT', index='ds', columns='unique_id')
+    fcst_multi_dfnew.to_csv('forcast.csv')
+    return fcst_multi_df, fcst_multi_dfnew
+
+#def get_features(data):
+
 
 
 # Use this funciton to plot your results. Make sure you enter the original data and the forcast data.
