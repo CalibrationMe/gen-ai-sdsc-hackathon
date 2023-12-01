@@ -1,5 +1,7 @@
 import os
 from PIL import Image
+import numpy as np
+import pickle
 import gradio as gr
 import prompt_generator_for_gpt
 import query_shopping_firat
@@ -11,11 +13,6 @@ import utils
 
 shopping_image_urls = []
 shopping_item_urls = []
-
-hardcoded_params_1 = {
-    'gender_str': 'male', 
-    'ethnicity_str': 'european',
-}
 
 hardcoded_shopping_results = {
     'row0': {'thumbnails': ['https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcSNB55HrfQe34rgvotn6kUHSMHNUKOji_5iaqYjk8y8m5rKyndVvnvWaZbSm3jvtJO12gJ7Uh5jN2LIe2D73dH_K3o8zpG3&usqp=CAE',
@@ -38,7 +35,27 @@ hardcoded_shopping_results = {
     'query': 'Boots,Insulated Snow Boots'}
 }
 
+
+hardcoded_params_1 = {
+    'gender_str': 'male', 
+    'ethnicity_str': 'european',
+    'age_str': 30,
+    'destination_str': 'Paris',
+    'date_start_str': '05.01.2024',
+    'date_end_str': '10.01.2024',
+    'weather_params': [2, 5],
+}
+
 def run_the_process(gender_str, ethnicity_str, age_str, destination_str, date_start_str, date_end_str, is_online=False):
+    if not is_online:
+        ## load a random hardcoded one.
+        l_hardcoded_pkl = ['hardcoded_params/affrican-american-23-stockholm-022024.pkl', 'middle-east-33-zermatt-012024.pkl']
+        fname_pkl = np.random.choice(l_hardcoded_pkl)
+        with open(fname_pkl, 'rb') as handle:
+            d_hardcoded_params = pickle.load(handle)
+        outputs = [d_hardcoded_params['dalle_image'], d_hardcoded_params['date_start_info'], d_hardcoded_params['date_end_info'], d_hardcoded_params['chat_gpt_prompt'], d_hardcoded_params['gallery_list'], d_hardcoded_params['url_display'], is_online]
+        return outputs
+        
     data_start_parsed = parse_date_str(date_start_str)
     if data_start_parsed == -1:
         date_start_info = f'{date_start_str} does not match the format DD.MM.YYYY!'
@@ -52,49 +69,66 @@ def run_the_process(gender_str, ethnicity_str, age_str, destination_str, date_st
     else:
         date_end_info = date_end_str
         
-    if is_online:
-        weather_params = get_weather_data.get_data(date_str='2023-11-20',days_before=30*5,location_name=destination_str)
-    else:
-        weather_params = [[35, 40]]
+    # if is_online:
+    #     weather_params = get_weather_data.get_data(date_str='2023-11-20',days_before=30*5,location_name=destination_str)
+    # else:
+    #     ## weather params
+    #     minTemp = 10
+    #     maxTemp = 25
+    #     minPrec = 0
+    #     maxPrec = 15
+    #     sunnyDays = 5
+    minTemp = -15
+    maxTemp = -10
+    minPrec = 0
+    maxPrec = 15
+    sunnyDays = 2
     chat_gpt_prompt = prompt_generator_for_gpt.prompt_only_text(
             gender=gender_str, 
             ethnicity=ethnicity_str,
             age=age_str,
             destination=destination_str,
-            weather_lims=weather_params[0])
+            minTemp=minTemp, maxTemp=maxTemp, minPrec=minPrec, maxPrec=maxPrec, sunnyDays=sunnyDays)
     ## call ChatGPT
-    if is_online:
-        clothing_str_chatgpt = query_chatgpt_firat.query_chatgpt4_text(chat_gpt_prompt)
-    else:
-        clothing_str_chatgpt = 'type of clothing,2-3 word description\nJacket,Winter Parka\nPants,Thermal Trousers\nBoots,Insulated Snow Boots\nGloves,Extreme Cold-Weather Gloves\nHat,Fleece-lined Beanie\nScarf,Thick Wool Scarf\nThermal Socks,Merino Wool Socks\nBase Layer,Long-sleeve Thermal Top\nOuter Layer,Waterproof Shell'
+    clothing_str_chatgpt = query_chatgpt_firat.query_chatgpt4_text(chat_gpt_prompt)
+    # else:
+    #     clothing_str_chatgpt = 'type of clothing,2-3 word description\nJacket,Winter Parka\nPants,Thermal Trousers\nBoots,Insulated Snow Boots\nGloves,Extreme Cold-Weather Gloves\nHat,Fleece-lined Beanie\nScarf,Thick Wool Scarf\nThermal Socks,Merino Wool Socks\nBase Layer,Long-sleeve Thermal Top\nOuter Layer,Waterproof Shell'
     logs_value = f'ChatGPT prompt: {chat_gpt_prompt}'
     ## call shopping API
     shopping_search_queries = clothing_str_chatgpt.split('\n')[1:]
-    if is_online:
-        for rows in range(3): ## current API runs out too fast.
-            dict_amazon = query_shopping_firat.search_product(shopping_search_queries[rows], max_items=3)
-            if dict_amazon is None:
-                continue
-            if rows == 0: #great coding style
-                row0 = dict_amazon
-            elif rows == 1:
-                row1 = dict_amazon
-            elif rows == 2:
-                row2 = dict_amazon
-    else:
-        ## HARDCODED results from shopping search API
-        row0, row1, row2 = hardcoded_shopping_results['row0'], hardcoded_shopping_results['row1'], hardcoded_shopping_results['row2']
+    for rows in range(3): ## current API runs out too fast.
+        dict_amazon = query_shopping_firat.search_product(shopping_search_queries[rows], max_items=3)
+        if dict_amazon is None:
+            dict_amazon = {'links': [], 'prices': [], 'thumbnails': []}
+        if rows == 0: #great coding style
+            row0 = dict_amazon
+        elif rows == 1:
+            row1 = dict_amazon
+        elif rows == 2:
+            row2 = dict_amazon
+    # else:
+    #     ## HARDCODED results from shopping search API
+    #     row0, row1, row2 = hardcoded_shopping_results['row0'], hardcoded_shopping_results['row1'], hardcoded_shopping_results['row2']
     row0['links'] = [utils.shorten_url(link) for link in row0['links']]
     row1['links'] = [utils.shorten_url(link) for link in row1['links']]
     row2['links'] = [utils.shorten_url(link) for link in row2['links']]
-    
-    
+
     ## call DALL-E
-    dalle_prompt = prompt_generator_for_gpt.prompt_string(with_text_output=False)
-    if is_online:
-        dalle_image = query_dalle_firat.get_dalle_image(dalle_prompt, image_save_name='images/generated_image.png')
-    else:
-        dalle_image = Image.open('images/generated_image.png')
+    dalle_prompt = prompt_generator_for_gpt.prompt_string(gender=gender_str, 
+            ethnicity=ethnicity_str,
+            age=age_str,
+            destination=destination_str,
+            minTemp=minTemp, maxTemp=maxTemp, minPrec=minPrec, maxPrec=maxPrec, sunnyDays=sunnyDays, clothing_items=shopping_search_queries, with_text_output=False)
+    dalle_image_arr = query_dalle_firat.get_dalle_image(dalle_prompt, image_save_name='images/generated_image.png')
+    dalle_image = Image.open('images/generated_image.png')
+    output_im = dalle_image
+    # else:
+    #     hardcoded_image = 'images/generated_image.png'
+    #     if os.path.isfile(hardcoded_image):
+    #         dalle_image = Image.open(hardcoded_image)
+    #     else:
+    #         dalle_image = None
+    #     output_im = dalle_image ## load image from images/ folder
     
     ## Populate Gallery
     list_thumbnails = row0['thumbnails'] + row1['thumbnails'] + row2['thumbnails']
@@ -107,14 +141,31 @@ def run_the_process(gender_str, ethnicity_str, age_str, destination_str, date_st
     shopping_image_urls = row0['thumbnails'] + row1['thumbnails'] + row2['thumbnails']
     shopping_item_urls = row0['links'] + row1['links'] + row2['links']
     
-    url_display = [f"[item {i}]({shopping_item_urls[i]})" for i in range(len(shopping_item_urls))]
+    url_display = [f"[item {i+1}]({shopping_item_urls[i]})" for i in range(len(shopping_item_urls))]
     url_display = '\n'.join(url_display)
-    hardcoded_image = 'images/generated_image.png'
-    if os.path.isfile(hardcoded_image):
-        image = Image.open(hardcoded_image)
-    else:
-        image = None
-    output_im = image ## load image from images/ folder
+    
+    hardcoded_params = {
+        'gender_str': gender_str,
+        'ethnicity_str': ethnicity_str,
+        'age_str': age_str,
+        'destination_str': destination_str,
+        'date_start_info': date_start_info,
+        'date_end_info': date_end_info,
+        'minTemp': minTemp,
+        'maxTemp': maxTemp,
+        'minPrec': minPrec,
+        'maxPrec': maxPrec,
+        'sunnyDays': sunnyDays,
+        'shopping_search_queries': shopping_search_queries,
+        'chat_gpt_prompt': chat_gpt_prompt,
+        'clothing_str_chatgpt': clothing_str_chatgpt,
+        'dalle_image': dalle_image,
+        'gallery_list': gallery_list,
+        'url_display': url_display,
+    }
+    # with open('hardcoded_params/affrican-american-23-stockholm-022024.pkl', 'wb') as handle:
+    #     pickle.dump(hardcoded_params, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    
     outputs = [output_im, date_start_info, date_end_info, logs_value, gallery_list, url_display, is_online]
     return outputs
 
@@ -144,7 +195,7 @@ def parse_date_str(date_str):
     return date_parsed
     
 d_defaults = {
-    'gender': 'male',
+    'gender': 'female',
     'ethnicity': 'middle eastern',
     'age': '33',
     'destination': 'Zermatt',
@@ -153,6 +204,10 @@ d_defaults = {
 }
 
 with gr.Blocks() as demo:
+    with gr.Row():
+        # gr.Column(scale=99)
+        with gr.Column(scale=1):
+            logo = gr.Image(value="images/Logo_TravelTailor.png", interactive=False, width=100)
     with gr.Row():
         with gr.Column(scale=1):
             gender_str_box = gr.Textbox(info="Gender", value=d_defaults['gender'], interactive=True)
@@ -167,9 +222,9 @@ with gr.Blocks() as demo:
         with gr.Column(scale=1):
             date_end_str_box = gr.Textbox(info="Travel end [DD.MM.YYYY]", value=d_defaults['travel_end'], interactive=True)
     with gr.Row():
-        with gr.Column(scale=80):
-            logs_box = gr.Textbox(info="Logs", interactive=False)
-        with gr.Column(scale=18):
+        with gr.Column(scale=50):
+            logs_box = gr.Textbox(info="Logs", interactive=False, visible=False)
+        with gr.Column(scale=5):
             button_submit = gr.Button(value="Find appropriate clothing!")
         with gr.Column(scale=2):
             checkbox_online = gr.Checkbox(label="Online", value=False, interactive=True)
