@@ -2,6 +2,7 @@ import os
 from PIL import Image
 import numpy as np
 import pickle
+import matplotlib.pyplot as plt
 import gradio as gr
 import prompt_generator_for_gpt
 import query_shopping_firat
@@ -36,36 +37,36 @@ hardcoded_shopping_results = {
 }
 
 
-hardcoded_params_1 = {
-    'gender_str': 'male', 
-    'ethnicity_str': 'european',
-    'age_str': 30,
-    'destination_str': 'Paris',
-    'date_start_str': '05.01.2024',
-    'date_end_str': '10.01.2024',
-    'weather_params': [2, 5],
-}
+def get_temp_plot(temp):
+    x = np.arange(len(temp))
+    fig, ax = plt.subplots(figsize=(2., 1.6)) 
+    fig = plt.plot(x, temp)
+    plt.axis('off')
+    fig = plt.gcf()
+    # plt.close()
+    return fig
 
 def run_the_process(gender_str, ethnicity_str, age_str, destination_str, date_start_str, date_end_str, is_online=False):
     if not is_online:
         ## load a random hardcoded one.
-        l_hardcoded_pkl = ['hardcoded_params/affrican-american-23-stockholm-022024.pkl', 'middle-east-33-zermatt-012024.pkl']
+        l_hardcoded_pkl = ['hardcoded_params/middle-east-female-33-zermatt-012024.pkl', 'hardcoded_params/asian-female-23-stockholm-022024.pkl']
         fname_pkl = np.random.choice(l_hardcoded_pkl)
         with open(fname_pkl, 'rb') as handle:
             d_hardcoded_params = pickle.load(handle)
-        outputs = [d_hardcoded_params['dalle_image'], d_hardcoded_params['date_start_info'], d_hardcoded_params['date_end_info'], d_hardcoded_params['chat_gpt_prompt'], d_hardcoded_params['gallery_list'], d_hardcoded_params['url_display'], is_online]
+        outputs = [d_hardcoded_params['dalle_image'], d_hardcoded_params['date_start_info'], d_hardcoded_params['date_end_info'], d_hardcoded_params['chat_gpt_prompt'], d_hardcoded_params['gallery_list'], d_hardcoded_params['url_display'], d_hardcoded_params['temp_plot'], d_hardcoded_params['weather_text']]
+        
         return outputs
         
     data_start_parsed = parse_date_str(date_start_str)
     if data_start_parsed == -1:
         date_start_info = f'{date_start_str} does not match the format DD.MM.YYYY!'
-        return [None, date_start_info, date_end_str, None , None, None, is_online]
+        return [None, date_start_info, date_end_str, None , None, None, None, None]
     else:
         date_start_info = date_start_str
     data_end_parsed = parse_date_str(date_end_str)
     if data_end_parsed == -1:
         date_end_info = f'{date_end_str} does not match the format DD.MM.YYYY!'
-        return [None, date_start_str, date_end_info, None, None , None, is_online]
+        return [None, date_start_str, date_end_info, None, None , None, None, None]
     else:
         date_end_info = date_end_str
         
@@ -114,12 +115,13 @@ def run_the_process(gender_str, ethnicity_str, age_str, destination_str, date_st
     row2['links'] = [utils.shorten_url(link) for link in row2['links']]
 
     ## call DALL-E
+    shopping_search_queries_dalle = None #shopping_search_queries
     dalle_prompt = prompt_generator_for_gpt.prompt_string(gender=gender_str, 
             ethnicity=ethnicity_str,
             age=age_str,
             destination=destination_str,
-            minTemp=minTemp, maxTemp=maxTemp, minPrec=minPrec, maxPrec=maxPrec, sunnyDays=sunnyDays, clothing_items=shopping_search_queries, with_text_output=False)
-    dalle_image_arr = query_dalle_firat.get_dalle_image(dalle_prompt, image_save_name='images/generated_image.png')
+            minTemp=minTemp, maxTemp=maxTemp, minPrec=minPrec, maxPrec=maxPrec, sunnyDays=sunnyDays, clothing_items=shopping_search_queries_dalle, with_text_output=False)
+    _ = query_dalle_firat.get_dalle_image(dalle_prompt, image_save_name='images/generated_image.png')
     dalle_image = Image.open('images/generated_image.png')
     output_im = dalle_image
     # else:
@@ -144,6 +146,9 @@ def run_the_process(gender_str, ethnicity_str, age_str, destination_str, date_st
     url_display = [f"[item {i+1}]({shopping_item_urls[i]})" for i in range(len(shopping_item_urls))]
     url_display = '\n'.join(url_display)
     
+    weather_text = f'{sunnyDays} sunny days, {minPrec}-{maxPrec} mm precipitation'
+    temp_plot = get_temp_plot(np.arange(100))
+    
     hardcoded_params = {
         'gender_str': gender_str,
         'ethnicity_str': ethnicity_str,
@@ -162,11 +167,17 @@ def run_the_process(gender_str, ethnicity_str, age_str, destination_str, date_st
         'dalle_image': dalle_image,
         'gallery_list': gallery_list,
         'url_display': url_display,
+        'weather_text': weather_text,
+        'temp_plot': temp_plot,
     }
-    # with open('hardcoded_params/affrican-american-23-stockholm-022024.pkl', 'wb') as handle:
+    # with open('hardcoded_params/middle-east-female-33-zermatt-012024.pkl', 'wb') as handle:
+    #     pickle.dump(hardcoded_params, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    with open('hardcoded_params/asian-female-23-stockholm-022024.pkl', 'wb') as handle:
+        pickle.dump(hardcoded_params, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    # with open('hardcoded_params/african-american-female-63-toronto-022024.pkl', 'wb') as handle:
     #     pickle.dump(hardcoded_params, handle, protocol=pickle.HIGHEST_PROTOCOL)
     
-    outputs = [output_im, date_start_info, date_end_info, logs_value, gallery_list, url_display, is_online]
+    outputs = [output_im, date_start_info, date_end_info, logs_value, gallery_list, url_display, temp_plot, weather_text]
     return outputs
 
 def get_image_urls(image_url):
@@ -203,11 +214,29 @@ d_defaults = {
     'travel_end': '10.01.2024',
 }
 
+d_defaults = {
+    'gender': 'female',
+    'ethnicity': 'asian',
+    'age': '23',
+    'destination': 'Stockholm',
+    'travel_start': '05.02.2024',
+    'travel_end': '10.02.2024',
+}
+
+# d_defaults = {
+#     'gender': 'female',
+#     'ethnicity': 'african american',
+#     'age': '63',
+#     'destination': 'Toronto',
+#     'travel_start': '05.02.2024',
+#     'travel_end': '10.02.2024',
+# }
+
 with gr.Blocks() as demo:
     with gr.Row():
         # gr.Column(scale=99)
         with gr.Column(scale=1):
-            logo = gr.Image(value="images/Logo_TravelTailor.png", interactive=False, width=100)
+            logo = gr.Image(value="images/Logo_TravelTailor.png", interactive=False, width=100, show_download_button=False)
     with gr.Row():
         with gr.Column(scale=1):
             gender_str_box = gr.Textbox(info="Gender", value=d_defaults['gender'], interactive=True)
@@ -222,15 +251,22 @@ with gr.Blocks() as demo:
         with gr.Column(scale=1):
             date_end_str_box = gr.Textbox(info="Travel end [DD.MM.YYYY]", value=d_defaults['travel_end'], interactive=True)
     with gr.Row():
-        with gr.Column(scale=50):
+        with gr.Column(scale=1):
             logs_box = gr.Textbox(info="Logs", interactive=False, visible=False)
-        with gr.Column(scale=5):
+        with gr.Column(scale=1):
             button_submit = gr.Button(value="Find appropriate clothing!")
-        with gr.Column(scale=2):
+        with gr.Column(scale=1):
             checkbox_online = gr.Checkbox(label="Online", value=False, interactive=True)
+        with gr.Column(scale=2):
+            weather_textbox = gr.Textbox(label='Remarks', interactive=False)
+        
+        
     with gr.Row():
-        with gr.Column(scale=4):
+        with gr.Column(scale=5):
             output_im = gr.Image(type="numpy", image_mode="L", label="Imagine!", interactive=False)
+        with gr.Column(scale=2):
+            plot_component = gr.Plot(label='Temperature')
+                
         with gr.Column(scale=6):
             with gr.Row():
                 gallery_suggested_clothing = gr.Gallery(label="Our suggestions", rows=3, columns=3, allow_preview=True, show_download_button=False,)  
@@ -239,8 +275,8 @@ with gr.Blocks() as demo:
         
     l_inputs = [gender_str_box, ethnicity_str_box, age_str_box, destination_str_box, date_start_str_box, date_end_str_box, checkbox_online]
     
-    button_submit.click(run_the_process, inputs=l_inputs, outputs=[output_im, date_start_str_box, date_end_str_box, logs_box, gallery_suggested_clothing, url_display])
-    # gallery_suggested_clothing.change(fn=get_image_urls, inputs=gallery_suggested_clothing, outputs=url_display)
+    button_submit.click(run_the_process, inputs=l_inputs, outputs=[output_im, date_start_str_box, date_end_str_box, logs_box, gallery_suggested_clothing, url_display, plot_component, weather_textbox])
+    
 
 if __name__ == "__main__":
     demo.launch(share=False)
