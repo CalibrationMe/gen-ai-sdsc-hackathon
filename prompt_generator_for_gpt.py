@@ -4,8 +4,8 @@ import numpy as np
 
 def prompt_string(gender = 'woman', ethnicity = 'korean', age = '50s', destination = 'Sahara', minTemp=-35, maxTemp=25, minPrec=0, maxPrec=15, sunnyDays=5, clothing_items=None, with_text_output=False):
 
-    string_setup = f'A {gender}, {ethnicity}, aged {age} is travelling to {destination}. The temperature will be between {minTemp} to {maxTemp} degrees celsius. Precipitation between {minPrec} and {maxPrec} and {sunnyDays} sunny days. '
-    string_visual = f'Draw a hyper realistic picture of this person with clothing that is fitting for that weather. Make sure this person is facing the viewer. Make sure the surrounding of this person is fitting of the destionation:{destination}. Do not put any text on the picture. ' 
+    string_setup = f'A {gender}, {ethnicity}, aged {age} is travelling to {destination}. The temperature will be between {minTemp} to {maxTemp} degrees celsius. Precipitation will be between {minPrec} and {maxPrec} (in case you want to draw rain). '
+    string_visual = f'Draw a hyper realistic picture of this person with clothing that is fitting for that weather. Make sure this person is facing the viewer. Make sure the surrounding of this person is fitting of the destionation:{destination}. **NO** text and **NO** numbers on the picture. ' 
     if clothing_items is not None:
         string_clothing = f'This person is wearing the following clothing items among other things: {clothing_items}. '
         string_visual =  string_visual + string_clothing
